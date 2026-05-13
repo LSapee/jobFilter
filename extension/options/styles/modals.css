@@ -1,0 +1,78 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(11, 28, 48, 0.42);
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal__panel {
+  width: min(360px, 100%);
+  padding: 18px;
+  background: var(--surface-card);
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(11, 28, 48, 0.18);
+}
+
+.modal__panel--form {
+  width: min(460px, 100%);
+}
+
+.modal__panel p {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  color: var(--text);
+  background: var(--surface-card);
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--primary);
+  outline: 2px solid rgba(0, 60, 144, 0.14);
+}
+

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JobFilter</title>
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body>
+    <main class="popup">
+      <header class="popup__header">
+        <div>
+          <h1>JobFilter</h1>
+          <p id="siteName">현재 사이트 확인 중</p>
+        </div>
+      </header>
+
+      <section class="stats" aria-label="저장 현황">
+        <div>
+          <strong id="blockedCount">0</strong>
+          <span>제외 업체</span>
+        </div>
+        <div>
+          <strong id="appliedCount">0</strong>
+          <span>지원 이력</span>
+        </div>
+      </section>
+
+      <section class="toggles" aria-label="필터 설정">
+        <label>
+          <input id="hideBlockedPostings" type="checkbox">
+          <span>제외 업체 숨김</span>
+        </label>
+        <label>
+          <input id="markAppliedCompanies" type="checkbox">
+          <span>지원완료 업체 숨김</span>
+        </label>
+      </section>
+
+      <p id="collectStatus" class="status" role="status"></p>
+      <button id="collectApplied" type="button">현재 페이지 지원 이력 수집</button>
+      <button id="openOptions" type="button">관리 화면 열기</button>
+    </main>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+@media (max-width: 1100px) {
+  body {
+    min-width: 0;
+  }
+
+  .sidebar {
+    position: static;
+    width: auto;
+  }
+
+  .workspace {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .stats-grid,
+  .application-dashboard,
+  .content-grid,
+  .platform-chart,
+  .calendar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-detail {
+    border-top: 1px solid #d8e2f1;
+    border-left: 0;
+  }
+}
+

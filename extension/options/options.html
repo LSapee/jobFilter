@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JobFilter 관리</title>
+    <link rel="stylesheet" href="./options.css">
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="JobFilter 관리 메뉴">
+      <div class="brand">
+        <img class="brand__mark" src="../icons/icon-48.png" alt="" aria-hidden="true">
+        <div>
+          <strong>JobFilter</strong>
+          <span>지원 관리</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav__item is-active" type="button" data-view="dashboard">대시보드</button>
+        <button class="nav__item" type="button" data-view="applications">지원 목록</button>
+        <button class="nav__item" type="button" data-view="blocked">제외 업체</button>
+        <button class="nav__item" type="button" data-view="calendar">일정</button>
+      </nav>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace__header">
+        <div>
+          <p class="eyebrow">Application Manager</p>
+          <h1 id="pageTitle">지원 현황 대시보드</h1>
+          <p id="pageDescription">수집된 지원 이력과 제외 업체를 한 화면에서 관리합니다.</p>
+        </div>
+      </header>
+
+      <section class="view is-active" data-panel="dashboard">
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span>총 지원 건수</span>
+            <strong id="totalAppliedCount">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>제외된 업체</span>
+            <strong id="blockedCompanyCount">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>수집 플랫폼</span>
+            <strong id="platformCount">0</strong>
+          </article>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel__header">
+              <h2>지원 분포</h2>
+            </div>
+            <div id="applicationDistribution" class="distribution-chart"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel__header">
+              <h2>지원 플랫폼 분포</h2>
+            </div>
+            <div id="platformStats" class="chart-host"></div>
+          </section>
+        </div>
+
+        <section class="panel distribution-detail-panel">
+          <div id="applicationDistributionDetails"></div>
+        </section>
+      </section>
+
+      <section class="view" data-panel="applications">
+        <div class="application-actions">
+          <button class="secondary-button" id="downloadCsvButton" type="button">CSV 내려받기</button>
+          <button class="secondary-button" id="uploadCsvButton" type="button">CSV 등록</button>
+          <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
+          <button class="primary-button" id="addApplicationButton" type="button">
+            <span aria-hidden="true">+</span>
+            지원 내역 직접 추가
+          </button>
+        </div>
+
+        <div class="application-dashboard">
+          <section class="panel panel--wide">
+            <div class="panel__header">
+              <h2>가장 많이 이용한 사이트</h2>
+              <span id="applicationSummary" class="panel__meta">0건</span>
+            </div>
+            <div id="appliedPlatformStats" class="platform-progress"></div>
+          </section>
+
+          <article class="summary-card">
+            <span>총 지원 건수</span>
+            <strong id="applicationTotalCount">0</strong>
+          </article>
+        </div>
+
+        <section class="panel platform-manager">
+          <div class="panel__header">
+            <h2>지원 내역</h2>
+            <button class="secondary-button" id="applicationDateSortButton" type="button">
+              지원일 최신순
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table class="platform-table">
+              <thead>
+                <tr>
+                  <th>지원한 플랫폼</th>
+                  <th>지원 건수</th>
+                </tr>
+              </thead>
+              <tbody id="appliedPlatformTable"></tbody>
+            </table>
+          </div>
+          <p id="appliedEmpty" class="empty">현재 페이지에서 수집한 지원 이력이 없습니다.</p>
+        </section>
+      </section>
+
+      <section class="view" data-panel="blocked">
+        <section class="panel">
+          <div class="panel__header">
+            <h2>제외 업체</h2>
+            <span id="blockedSummary" class="panel__meta">0건</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>회사</th>
+                  <th>적용 범위</th>
+                  <th>등록일</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="blockedTable"></tbody>
+            </table>
+          </div>
+          <p id="blockedEmpty" class="empty">우클릭 메뉴로 제외한 업체가 없습니다.</p>
+        </section>
+      </section>
+
+      <section class="view" data-panel="calendar">
+        <section class="calendar-layout">
+          <div class="calendar-board">
+            <div class="calendar-board__header">
+              <div>
+                <h2 id="calendarTitle">지원 일정</h2>
+                <p>지원일 기준으로 플랫폼별 지원 묶음과 면접 일정을 확인합니다.</p>
+              </div>
+              <div class="calendar-nav">
+                <button class="secondary-button" id="prevCalendarMonthButton" type="button">이전 달</button>
+                <button class="secondary-button" id="todayCalendarButton" type="button">오늘</button>
+                <button class="secondary-button" id="nextCalendarMonthButton" type="button">다음 달</button>
+              </div>
+            </div>
+            <div class="calendar-weekdays">
+              <span>일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span>토</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+
+          <aside class="calendar-detail">
+            <div class="calendar-detail__header">
+              <h2>지원 내역</h2>
+              <p id="calendarSideDate">-</p>
+              <button class="outline-danger-button calendar-delete-day-button" id="deleteCalendarDayButton" type="button">
+                선택 날짜 지원 이력 전체 삭제
+              </button>
+            </div>
+            <div class="calendar-detail__content">
+              <section>
+                <h3>지원 플랫폼</h3>
+                <div id="calendarPlatformGroups" class="calendar-group-list"></div>
+              </section>
+              <section>
+                <h3>면접</h3>
+                <div id="calendarInterviewGroups" class="calendar-group-list"></div>
+              </section>
+              <p id="calendarEmpty" class="empty">해당 날짜의 지원 이력이 없습니다.</p>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+
+    <div class="modal" id="confirmModal" hidden role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal__panel">
+        <h2 id="confirmTitle">삭제 확인</h2>
+        <p id="confirmMessage">선택한 항목을 삭제할까요?</p>
+        <div class="modal__actions">
+          <button class="secondary-button" id="confirmCancelButton" type="button">취소</button>
+          <button class="danger-button danger-button--modal" id="confirmDeleteButton" type="button">삭제</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="addApplicationModal" hidden role="dialog" aria-modal="true" aria-labelledby="addApplicationModalTitle">
+      <form class="modal__panel modal__panel--form" id="addApplicationForm">
+        <h2 id="addApplicationModalTitle">지원 내역 직접 추가</h2>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>지원 플랫폼</span>
+            <select id="addApplicationPlatform" name="platform" required>
+              <option value="saramin">사람인</option>
+              <option value="jobkorea">잡코리아</option>
+              <option value="wanted">원티드</option>
+              <option value="linkedin">링크드인</option>
+              <option value="manual">기타(직접 입력)</option>
+            </select>
+          </label>
+
+          <label class="field" id="addApplicationManualPlatformGroup" hidden>
+            <span>플랫폼 이름</span>
+            <input id="addApplicationManualPlatform" name="manualPlatform" type="text" placeholder="플랫폼 이름 직접 입력">
+          </label>
+
+          <label class="field">
+            <span>회사명</span>
+            <input id="addApplicationCompany" name="companyName" type="text" placeholder="회사명을 입력하세요" required>
+          </label>
+
+          <label class="field">
+            <span>공고명</span>
+            <input id="addApplicationJobTitle" name="title" type="text" placeholder="공고명을 입력하세요">
+          </label>
+
+          <label class="field">
+            <span>공고 링크</span>
+            <input id="addApplicationUrl" name="postingUrl" type="url" placeholder="https://example.com/job">
+          </label>
+
+          <label class="field">
+            <span>지원 일자</span>
+            <input id="addApplicationDate" name="appliedAt" type="date" required>
+          </label>
+
+          <label class="field">
+            <span>상태</span>
+            <select id="addApplicationStatus" name="status">
+              <option value="서류 제출">서류 제출</option>
+              <option value="면접 예정">면접 예정</option>
+              <option value="합격">합격</option>
+              <option value="기타">기타</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="modal__actions">
+          <button class="secondary-button" id="addApplicationCancelButton" type="button">취소</button>
+          <button class="primary-button" type="submit">추가</button>
+        </div>
+      </form>
+    </div>
+
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>

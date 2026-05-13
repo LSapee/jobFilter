@@ -38,10 +38,7 @@
       "matches": [
         "https://*.saramin.co.kr/*",
         "https://*.jobkorea.co.kr/*",
-        "https://*.wanted.co.kr/*",
-        "https://*.jumpit.co.kr/*",
-        "https://*.incruit.com/*",
-        "https://*.programmers.co.kr/*"
+        "https://*.wanted.co.kr/*"
       ],
       "js": [
         "src/utils/companyName.js",
@@ -58,9 +55,6 @@
   "host_permissions": [
     "https://*.saramin.co.kr/*",
     "https://*.jobkorea.co.kr/*",
-    "https://*.wanted.co.kr/*",
-    "https://*.jumpit.co.kr/*",
-    "https://*.incruit.com/*",
-    "https://*.programmers.co.kr/*"
+    "https://*.wanted.co.kr/*"
   ]
 }

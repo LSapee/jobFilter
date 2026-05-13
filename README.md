@@ -33,8 +33,6 @@ JobFilter for Korea Jobs는 한국 채용 사이트의 공고를 필터링하고
   - 지원 이력 수집: `wanted.co.kr/status/applications/applied`
   - 지원 이력 수집 시 페이지네이션을 자동으로 넘기며 수집
 
-manifest에는 추후 확장을 위해 Jumpit, Incruit, Programmers 권한도 포함되어 있습니다. 해당 사이트 전용 파서는 아직 구현하지 않았습니다.
-
 ## 프로젝트 구조
 
 ```text

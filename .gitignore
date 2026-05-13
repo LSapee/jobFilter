@@ -1,0 +1,8 @@
+dist/
+node_modules/
+useAI/
+package.json
+scripts/
+src/
+.idea/
+

@@ -70,7 +70,9 @@ async function handleCollectAppliedClick() {
     return;
   }
 
-  collectStatus.textContent = `${saveResponse.companies.length}개 지원 이력을 저장했습니다.`;
+  collectStatus.textContent =
+    `${saveResponse.addedCompanies.length}개 추가, ` +
+    `${saveResponse.updatedCompanies.length}개 갱신했습니다.`;
   collectApplied.disabled = false;
   await renderPopup();
 }

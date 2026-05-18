@@ -3,11 +3,10 @@ import {
   createEmptyCompactItem,
   createPostingLink,
   formatDate,
+  getApplicationStatusKey,
+  getApplicationStatusLabel,
   getChartColor,
-  hasInterviewStatus,
-  hasPassedDocumentStatus,
-  hasReadStatus,
-  hasRejectedStatus,
+  hasStaleUnreadStatus,
   sortByDateDesc
 } from "./shared.js";
 
@@ -201,7 +200,9 @@ function createApplicationDistributionDetailItem(company) {
   ]
     .filter(Boolean)
     .join(" / ");
-  status.textContent = company.applyStatus || "지원 완료";
+  status.textContent = hasStaleUnreadStatus(company)
+    ? "미열람(불합격 추측)"
+    : getApplicationStatusLabel(company);
 
   main.append(companyName, posting, meta);
   item.append(main, status);
@@ -211,41 +212,63 @@ function createApplicationDistributionDetailItem(company) {
 
 // 지원 이력을 기준으로 대시보드 지원 분포 값을 계산한다.
 function getApplicationDistribution(companies) {
+  const companiesByStatus = {
+    applied: companies.filter(
+      (company) =>
+        getApplicationStatusKey(company) === "applied" &&
+        !hasStaleUnreadStatus(company)
+    ),
+    staleUnread: companies.filter(hasStaleUnreadStatus),
+    read: companies.filter((company) => getApplicationStatusKey(company) === "read"),
+    interview: companies.filter(
+      (company) => getApplicationStatusKey(company) === "interview"
+    ),
+    accepted: companies.filter((company) => getApplicationStatusKey(company) === "accepted"),
+    rejected: companies.filter((company) => getApplicationStatusKey(company) === "rejected")
+  };
+
   return [
     {
       key: "applied",
       label: "지원 완료",
-      count: companies.length,
+      count: companiesByStatus.applied.length,
       color: "#0f52ba",
-      companies
+      companies: companiesByStatus.applied
     },
     {
       key: "read",
       label: "서류 열람",
-      count: companies.filter(hasReadStatus).length,
+      count: companiesByStatus.read.length,
       color: "#1d59c1",
-      companies: companies.filter(hasReadStatus)
-    },
-    {
-      key: "passed",
-      label: "서류 통과",
-      count: companies.filter(hasPassedDocumentStatus).length,
-      color: "#006c49",
-      companies: companies.filter(hasPassedDocumentStatus)
+      companies: companiesByStatus.read
     },
     {
       key: "interview",
-      label: "면접",
-      count: companies.filter(hasInterviewStatus).length,
+      label: "면접 예정",
+      count: companiesByStatus.interview.length,
       color: "#7c4d00",
-      companies: companies.filter(hasInterviewStatus)
+      companies: companiesByStatus.interview
+    },
+    {
+      key: "accepted",
+      label: "합격",
+      count: companiesByStatus.accepted.length,
+      color: "#006c49",
+      companies: companiesByStatus.accepted
     },
     {
       key: "rejected",
       label: "불합격",
-      count: companies.filter(hasRejectedStatus).length,
+      count: companiesByStatus.rejected.length,
       color: "#ba1a1a",
-      companies: companies.filter(hasRejectedStatus)
+      companies: companiesByStatus.rejected
+    },
+    {
+      key: "staleUnread",
+      label: "20일 이상 미열람\n(불합격 추측)",
+      count: companiesByStatus.staleUnread.length,
+      color: "#5c3800",
+      companies: companiesByStatus.staleUnread
     }
   ];
 }

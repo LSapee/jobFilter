@@ -1,6 +1,7 @@
 import {
   addAppliedCompany,
-  removeAppliedCompany
+  removeAppliedCompany,
+  updateAppliedCompany
 } from "../../src/storage.js";
 import {
   createActionCell,
@@ -8,6 +9,7 @@ import {
   createPostingLink,
   createTextCell,
   formatDate,
+  getApplicationStatusLabel,
   getChartColor,
   getDateTime,
   getTodayDateValue,
@@ -23,7 +25,10 @@ export function createApplicationsController({
 }) {
   const expandedPlatforms = new Set();
   const selectedApplicationIds = new Set();
+  const maximumInterviewDate = "9999-12-31";
   let dateSortDirection = "desc";
+  let applicationSearchQuery = "";
+  let editingApplicationId = "";
   let hasInitializedDefaultExpandedPlatform = false;
 
   return {
@@ -43,6 +48,7 @@ export function createApplicationsController({
     elements.appliedPlatformStats.replaceChildren(
       ...createAppliedPlatformProgressItems(groups, companies.length)
     );
+    renderApplicationSearchResults(companies);
     elements.appliedPlatformTable.replaceChildren(
       ...groups.flatMap(createAppliedPlatformRows)
     );
@@ -52,7 +58,9 @@ export function createApplicationsController({
   // 지원 목록 화면의 버튼과 모달 이벤트를 등록한다.
   function bindApplicationActions() {
     bindDateSortButton();
+    bindApplicationSearch();
     bindAddApplicationModal();
+    bindEditApplicationModal();
   }
 
   // 지원 이력을 플랫폼별로 묶은 뒤 현재 지원일 정렬 방향을 적용한다.
@@ -95,6 +103,74 @@ export function createApplicationsController({
       dateSortDirection = dateSortDirection === "desc" ? "asc" : "desc";
       renderAppliedCompanies(getCurrentData().appliedCompanies);
     });
+  }
+
+  // 전체 지원 이력 검색 입력 이벤트를 등록한다.
+  function bindApplicationSearch() {
+    elements.applicationSearchInput.addEventListener("input", () => {
+      applicationSearchQuery = elements.applicationSearchInput.value.trim();
+      renderApplicationSearchResults(getCurrentData().appliedCompanies);
+    });
+  }
+
+  // 현재 검색어에 맞는 전체 지원 이력 검색 결과를 렌더링한다.
+  function renderApplicationSearchResults(companies) {
+    const matchedCompanies = getMatchedApplicationCompanies(companies);
+    const hasQuery = Boolean(applicationSearchQuery);
+
+    elements.applicationSearchTable.replaceChildren(
+      ...matchedCompanies.map(createApplicationSearchRow)
+    );
+    elements.applicationSearchTableWrap.hidden = !hasQuery || matchedCompanies.length === 0;
+    elements.applicationSearchEmpty.classList.toggle(
+      "is-visible",
+      !hasQuery || matchedCompanies.length === 0
+    );
+    elements.applicationSearchEmpty.textContent = hasQuery
+      ? "검색 결과가 없습니다."
+      : "플랫폼, 기업명, 지원일, 공고명으로 전체 지원 이력을 검색할 수 있습니다.";
+    elements.applicationSearchSummary.textContent = hasQuery
+      ? `${matchedCompanies.length}건 검색됨`
+      : "검색어를 입력하세요";
+  }
+
+  // 플랫폼, 기업명, 지원일, 공고명 전체에서 검색어와 일치하는 지원 이력을 찾는다.
+  function getMatchedApplicationCompanies(companies) {
+    if (!applicationSearchQuery) {
+      return [];
+    }
+
+    const normalizedQuery = applicationSearchQuery.toLowerCase();
+
+    return sortCompaniesByAppliedDate(companies).filter((company) => {
+      return [
+        company.applySite,
+        company.companyName,
+        formatDate(company.appliedAt),
+        company.title
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedQuery));
+    });
+  }
+
+  // 전체 지원 이력 검색 결과 테이블 행을 만든다.
+  function createApplicationSearchRow(company) {
+    const row = document.createElement("tr");
+    const platformCell = createTextCell(company.applySite);
+    const companyCell = createTextCell(company.companyName);
+    const appliedAtCell = createTextCell(formatDate(company.appliedAt));
+    const postingCell = document.createElement("td");
+    const editCell = createEditActionCell(company);
+    const deleteCell = createActionCell("×", () => requestAppliedCompanyRemoval(company));
+
+    postingCell.className = "posting-name-cell";
+    editCell.classList.add("action-cell");
+    deleteCell.classList.add("delete-cell");
+    postingCell.append(createPostingLink(company));
+    row.append(platformCell, companyCell, appliedAtCell, postingCell, editCell, deleteCell);
+
+    return row;
   }
 
   // 플랫폼별 지원 건수 진행 막대 목록을 만든다.
@@ -187,12 +263,14 @@ export function createApplicationsController({
     toolbarActions.className = "platform-detail__actions";
     selectLabel.className = "bulk-select";
     selectAll.type = "checkbox";
-    selectAll.checked = group.companies.every((company) =>
-      selectedApplicationIds.has(company.id)
-    );
+    selectAll.checked = countSelectedApplications(group.companies) ===
+      group.companies.length;
+    selectAll.indeterminate =
+      countSelectedApplications(group.companies) > 0 &&
+      countSelectedApplications(group.companies) < group.companies.length;
     selectAll.addEventListener("change", () => {
       togglePlatformSelection(group.companies, selectAll.checked);
-      renderAppliedCompanies(getCurrentData().appliedCompanies);
+      updatePlatformSelectionView(wrapper, group.companies);
     });
     selectedCount.className = "selected-count";
     selectedCount.textContent = `선택된 지원 공고 ${countSelectedApplications(group.companies)}개`;
@@ -212,10 +290,15 @@ export function createApplicationsController({
         <th>기업명</th>
         <th>지원일</th>
         <th class="posting-name-header">공고명</th>
+        <th class="action-header">수정</th>
         <th class="delete-header">삭제</th>
       </tr>
     `;
-    tbody.append(...group.companies.map(createAppliedCompanyDetailRow));
+    tbody.append(
+      ...group.companies.map((company) =>
+        createAppliedCompanyDetailRow(company, group.companies)
+      )
+    );
     table.append(thead, tbody);
     scrollWrapper.append(table);
     wrapper.append(toolbar, scrollWrapper);
@@ -226,35 +309,38 @@ export function createApplicationsController({
   }
 
   // 플랫폼 상세 테이블의 지원 이력 행을 만든다.
-  function createAppliedCompanyDetailRow(company) {
+  function createAppliedCompanyDetailRow(company, platformCompanies) {
     const row = document.createElement("tr");
     const selectCell = document.createElement("td");
     const checkbox = document.createElement("input");
     const companyCell = createTextCell(company.companyName);
     const appliedAtCell = createTextCell(formatDate(company.appliedAt));
     const linkCell = document.createElement("td");
+    const editCell = createEditActionCell(company);
     const actionCell = createActionCell("×", () => requestAppliedCompanyRemoval(company));
 
     checkbox.type = "checkbox";
     checkbox.checked = selectedApplicationIds.has(company.id);
     checkbox.addEventListener("change", () => {
       toggleApplicationSelection(company.id, checkbox.checked);
-      renderAppliedCompanies(getCurrentData().appliedCompanies);
+      updatePlatformSelectionView(row.closest(".platform-detail"), platformCompanies);
     });
     checkbox.addEventListener("click", (event) => {
       event.stopPropagation();
     });
     selectCell.addEventListener("click", () => {
       toggleApplicationSelection(company.id, !selectedApplicationIds.has(company.id));
-      renderAppliedCompanies(getCurrentData().appliedCompanies);
+      updatePlatformSelectionView(row.closest(".platform-detail"), platformCompanies);
     });
     selectCell.className = "check-cell";
+    editCell.classList.add("action-cell");
     actionCell.classList.add("delete-cell");
     linkCell.className = "posting-name-cell";
+    row.dataset.applicationId = company.id;
     row.classList.toggle("is-selected", checkbox.checked);
     selectCell.append(checkbox);
     linkCell.append(createPostingLink(company));
-    row.append(selectCell, companyCell, appliedAtCell, linkCell, actionCell);
+    row.append(selectCell, companyCell, appliedAtCell, linkCell, editCell, actionCell);
 
     return row;
   }
@@ -286,6 +372,40 @@ export function createApplicationsController({
     });
   }
 
+  // 현재 플랫폼 상세 영역의 체크박스, 행 강조, 선택 개수만 제자리에서 갱신한다.
+  function updatePlatformSelectionView(detail, companies) {
+    if (!detail) {
+      return;
+    }
+
+    const selectAll = detail.querySelector(".bulk-select input");
+    const selectedCount = detail.querySelector(".selected-count");
+
+    detail.querySelectorAll("[data-application-id]").forEach((row) => {
+      const selected = selectedApplicationIds.has(row.dataset.applicationId);
+      const checkbox = row.querySelector(".check-cell input");
+
+      row.classList.toggle("is-selected", selected);
+
+      if (checkbox) {
+        checkbox.checked = selected;
+      }
+    });
+
+    if (selectAll) {
+      const selectedCount = countSelectedApplications(companies);
+
+      selectAll.checked = selectedCount === companies.length;
+      selectAll.indeterminate =
+        selectedCount > 0 && selectedCount < companies.length;
+    }
+
+    if (selectedCount) {
+      selectedCount.textContent =
+        `선택된 지원 공고 ${countSelectedApplications(companies)}개`;
+    }
+  }
+
   // 저장소에 더 이상 없는 지원 이력의 선택 상태를 제거한다.
   function pruneSelectedApplications(companies) {
     const existingIds = new Set(companies.map((company) => company.id));
@@ -301,6 +421,20 @@ export function createApplicationsController({
   function countSelectedApplications(companies) {
     return companies.filter((company) => selectedApplicationIds.has(company.id))
       .length;
+  }
+
+  // 지원 이력 수정 모달을 여는 버튼 셀을 만든다.
+  function createEditActionCell(company) {
+    const cell = document.createElement("td");
+    const button = document.createElement("button");
+
+    button.className = "edit-button";
+    button.type = "button";
+    button.textContent = "수정";
+    button.addEventListener("click", () => openEditApplicationModal(company));
+    cell.append(button);
+
+    return cell;
   }
 
   // 개별 지원 이력 삭제 전 확인 모달을 연다.
@@ -382,6 +516,31 @@ export function createApplicationsController({
     });
   }
 
+  // 지원 이력 수정 모달 관련 이벤트를 등록한다.
+  function bindEditApplicationModal() {
+    elements.editApplicationCancelButton.addEventListener(
+      "click",
+      closeEditApplicationModal
+    );
+    elements.editApplicationStatus.addEventListener(
+      "change",
+      updateEditInterviewDateField
+    );
+    elements.editApplicationInterviewDate.addEventListener(
+      "input",
+      validateEditInterviewDate
+    );
+    elements.editApplicationForm.addEventListener(
+      "submit",
+      handleEditApplicationSubmit
+    );
+    elements.editApplicationModal.addEventListener("click", (event) => {
+      if (event.target === elements.editApplicationModal) {
+        closeEditApplicationModal();
+      }
+    });
+  }
+
   // 지원 내역 직접 추가 모달을 열고 지원일 기본값을 오늘로 설정한다.
   function openAddApplicationModal() {
     if (!elements.addApplicationDate.value) {
@@ -442,5 +601,120 @@ export function createApplicationsController({
     }
 
     return elements.addApplicationManualPlatform.value.trim();
+  }
+
+  // 선택한 지원 이력 데이터를 채워 수정 모달을 연다.
+  function openEditApplicationModal(company) {
+    editingApplicationId = company.id;
+    elements.editApplicationPlatform.value = company.applySite || "-";
+    elements.editApplicationCompany.value = company.companyName || "-";
+    elements.editApplicationTitle.value = company.title || "-";
+    setEditApplicationStatusValue(getApplicationStatusLabel(company));
+    elements.editApplicationInterviewDate.value = company.interviewAt || "";
+    elements.editApplicationInterviewDate.min = getTodayDateValue();
+    elements.editApplicationInterviewDate.max = maximumInterviewDate;
+    updateEditInterviewDateField();
+    elements.editApplicationModal.hidden = false;
+    elements.editApplicationStatus.focus();
+  }
+
+  // 수정 모달을 닫고 현재 수정 대상을 초기화한다.
+  function closeEditApplicationModal() {
+    editingApplicationId = "";
+    elements.editApplicationForm.reset();
+    elements.editApplicationInterviewDateGroup.hidden = true;
+    elements.editApplicationInterviewDate.required = false;
+    elements.editApplicationInterviewDate.setCustomValidity("");
+    elements.editApplicationModal.hidden = true;
+  }
+
+  // 수정 모달의 상태 선택값에 기존 값이 없으면 임시 옵션을 추가해 유지한다.
+  function setEditApplicationStatusValue(status) {
+    const existingOption = [...elements.editApplicationStatus.options].find(
+      (option) => option.value === status
+    );
+
+    if (!existingOption) {
+      const option = document.createElement("option");
+
+      option.value = status;
+      option.textContent = status;
+      option.dataset.dynamicStatus = "true";
+      elements.editApplicationStatus.append(option);
+    }
+
+    elements.editApplicationStatus.value = status;
+  }
+
+  // 수정 모달의 상태값에 따라 면접일 입력 필드 표시 여부를 갱신한다.
+  function updateEditInterviewDateField() {
+    const needsInterviewDate = elements.editApplicationStatus.value === "면접 예정";
+    const today = getTodayDateValue();
+
+    elements.editApplicationInterviewDateGroup.hidden = !needsInterviewDate;
+    elements.editApplicationInterviewDate.required = needsInterviewDate;
+    elements.editApplicationInterviewDate.min = today;
+    elements.editApplicationInterviewDate.max = maximumInterviewDate;
+
+    if (needsInterviewDate && !elements.editApplicationInterviewDate.value) {
+      elements.editApplicationInterviewDate.value = today;
+    } else if (!needsInterviewDate) {
+      elements.editApplicationInterviewDate.value = "";
+      elements.editApplicationInterviewDate.setCustomValidity("");
+    }
+
+    validateEditInterviewDate();
+  }
+
+  // 직접 입력한 면접일의 연도 길이와 과거 날짜 여부를 검증한다.
+  function validateEditInterviewDate() {
+    const interviewDate = elements.editApplicationInterviewDate.value;
+    const today = getTodayDateValue();
+    const year = interviewDate.split("-")[0] ?? "";
+
+    if (
+      elements.editApplicationStatus.value === "면접 예정" &&
+      interviewDate &&
+      year.length !== 4
+    ) {
+      elements.editApplicationInterviewDate.setCustomValidity(
+        "연도는 4자리로 입력하세요."
+      );
+      return false;
+    }
+
+    if (
+      elements.editApplicationStatus.value === "면접 예정" &&
+      interviewDate &&
+      interviewDate < today
+    ) {
+      elements.editApplicationInterviewDate.setCustomValidity(
+        "오늘 또는 이후 날짜를 입력하세요."
+      );
+      return false;
+    }
+
+    elements.editApplicationInterviewDate.setCustomValidity("");
+    return true;
+  }
+
+  // 수정 모달 입력값을 저장소에 반영하고 전체 화면을 다시 렌더링한다.
+  async function handleEditApplicationSubmit(event) {
+    event.preventDefault();
+
+    if (
+      !editingApplicationId ||
+      !validateEditInterviewDate() ||
+      !elements.editApplicationForm.reportValidity()
+    ) {
+      return;
+    }
+
+    await updateAppliedCompany(editingApplicationId, {
+      applyStatus: elements.editApplicationStatus.value,
+      interviewAt: elements.editApplicationInterviewDate.value
+    });
+    closeEditApplicationModal();
+    await render();
   }
 }

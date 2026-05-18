@@ -42,6 +42,11 @@ const elements = {
   applicationTotalCount: document.querySelector("#applicationTotalCount"),
   applicationDateSortButton: document.querySelector("#applicationDateSortButton"),
   appliedPlatformStats: document.querySelector("#appliedPlatformStats"),
+  applicationSearchInput: document.querySelector("#applicationSearchInput"),
+  applicationSearchSummary: document.querySelector("#applicationSearchSummary"),
+  applicationSearchTableWrap: document.querySelector("#applicationSearchTableWrap"),
+  applicationSearchTable: document.querySelector("#applicationSearchTable"),
+  applicationSearchEmpty: document.querySelector("#applicationSearchEmpty"),
   appliedPlatformTable: document.querySelector("#appliedPlatformTable"),
   appliedEmpty: document.querySelector("#appliedEmpty"),
   blockedSummary: document.querySelector("#blockedSummary"),
@@ -78,6 +83,21 @@ const elements = {
   addApplicationStatus: document.querySelector("#addApplicationStatus"),
   addApplicationCancelButton: document.querySelector(
     "#addApplicationCancelButton"
+  ),
+  editApplicationModal: document.querySelector("#editApplicationModal"),
+  editApplicationForm: document.querySelector("#editApplicationForm"),
+  editApplicationPlatform: document.querySelector("#editApplicationPlatform"),
+  editApplicationCompany: document.querySelector("#editApplicationCompany"),
+  editApplicationTitle: document.querySelector("#editApplicationJobTitle"),
+  editApplicationStatus: document.querySelector("#editApplicationStatus"),
+  editApplicationInterviewDateGroup: document.querySelector(
+    "#editApplicationInterviewDateGroup"
+  ),
+  editApplicationInterviewDate: document.querySelector(
+    "#editApplicationInterviewDate"
+  ),
+  editApplicationCancelButton: document.querySelector(
+    "#editApplicationCancelButton"
   ),
   downloadCsvButton: document.querySelector("#downloadCsvButton"),
   uploadCsvButton: document.querySelector("#uploadCsvButton"),

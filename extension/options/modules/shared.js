@@ -167,27 +167,70 @@ export function getTodayDateValue() {
 }
 
 // 지원 이력의 열람 상태가 열람 완료인지 판단한다.
-export function hasReadStatus(company) {
+function hasReadDocumentStatus(company) {
   const readStatus = String(company.readStatus ?? "");
 
   return readStatus.includes("열람") && !readStatus.includes("미열람");
 }
 
-// 지원 이력의 상태가 서류 통과 계열인지 판단한다.
-export function hasPassedDocumentStatus(company) {
+// 지원 이력의 열람 상태가 미열람인지 판단한다.
+function hasUnreadDocumentStatus(company) {
+  return String(company.readStatus ?? "").includes("미열람");
+}
+
+// 지원 이력의 상태를 대시보드에서 사용할 단계 키로 정규화한다.
+export function getApplicationStatusKey(company) {
   const status = String(company.applyStatus ?? "");
 
-  return status.includes("서류 통과") || status.includes("서류합격");
+  if (status.includes("불합격") || status.includes("탈락")) {
+    return "rejected";
+  }
+
+  if (status.includes("합격")) {
+    return "accepted";
+  }
+
+  if (status.includes("면접")) {
+    return "interview";
+  }
+
+  if (status.includes("서류 열람") || hasReadDocumentStatus(company)) {
+    return "read";
+  }
+
+  return "applied";
+}
+
+// 지원 이력의 상태를 사용자에게 보여줄 단계 라벨로 정규화한다.
+export function getApplicationStatusLabel(company) {
+  const labels = {
+    applied: "지원 완료",
+    read: "서류 열람",
+    interview: "면접 예정",
+    accepted: "합격",
+    rejected: "불합격"
+  };
+
+  return labels[getApplicationStatusKey(company)];
+}
+
+// 미열람 상태가 20일 이상 지난 지원 이력인지 판단한다.
+export function hasStaleUnreadStatus(company) {
+  if (
+    getApplicationStatusKey(company) !== "applied" ||
+    !hasUnreadDocumentStatus(company)
+  ) {
+    return false;
+  }
+
+  const appliedTime = getDateTime(formatDate(company.appliedAt));
+  const todayTime = getDateTime(getTodayDateValue());
+  const elapsedDays = Math.floor((todayTime - appliedTime) / (1000 * 60 * 60 * 24));
+
+  return appliedTime > 0 && elapsedDays >= 20;
 }
 
 // 지원 이력의 상태가 면접 계열인지 판단한다.
 export function hasInterviewStatus(company) {
-  return String(company.applyStatus ?? "").includes("면접");
-}
-
-// 지원 이력의 상태가 불합격 계열인지 판단한다.
-export function hasRejectedStatus(company) {
-  const status = String(company.applyStatus ?? "");
-
-  return status.includes("불합격") || status.includes("탈락");
+  return getApplicationStatusKey(company) === "interview";
 }

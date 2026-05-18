@@ -96,6 +96,42 @@
           </article>
         </div>
 
+        <section class="panel application-search">
+          <div class="panel__header application-search__header">
+            <div>
+              <h2>지원 내역 검색</h2>
+              <span id="applicationSearchSummary" class="panel__meta">검색어를 입력하세요</span>
+            </div>
+            <label class="application-search__field">
+              <span>지원 내역 검색</span>
+              <input
+                id="applicationSearchInput"
+                type="search"
+                placeholder="플랫폼, 기업명, 지원일, 공고명 검색"
+                autocomplete="off"
+              >
+            </label>
+          </div>
+          <div id="applicationSearchTableWrap" class="table-wrap application-search__table-wrap" hidden>
+            <table class="application-search__table">
+              <thead>
+                <tr>
+                  <th>지원 플랫폼</th>
+                  <th>기업명</th>
+                  <th>지원일</th>
+                  <th>공고명</th>
+                  <th class="action-header">수정</th>
+                  <th class="delete-header">삭제</th>
+                </tr>
+              </thead>
+              <tbody id="applicationSearchTable"></tbody>
+            </table>
+          </div>
+          <p id="applicationSearchEmpty" class="empty is-visible">
+            플랫폼, 기업명, 지원일, 공고명으로 전체 지원 이력을 검색할 수 있습니다.
+          </p>
+        </section>
+
         <section class="panel platform-manager">
           <div class="panel__header">
             <h2>지원 내역</h2>
@@ -246,10 +282,11 @@
           <label class="field">
             <span>상태</span>
             <select id="addApplicationStatus" name="status">
-              <option value="서류 제출">서류 제출</option>
+              <option value="지원 완료">지원 완료</option>
+              <option value="서류 열람">서류 열람</option>
               <option value="면접 예정">면접 예정</option>
               <option value="합격">합격</option>
-              <option value="기타">기타</option>
+              <option value="불합격">불합격</option>
             </select>
           </label>
         </div>
@@ -257,6 +294,50 @@
         <div class="modal__actions">
           <button class="secondary-button" id="addApplicationCancelButton" type="button">취소</button>
           <button class="primary-button" type="submit">추가</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal" id="editApplicationModal" hidden role="dialog" aria-modal="true" aria-labelledby="editApplicationModalTitle">
+      <form class="modal__panel modal__panel--form" id="editApplicationForm">
+        <h2 id="editApplicationModalTitle">지원 내역 수정</h2>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>지원 플랫폼</span>
+            <input id="editApplicationPlatform" type="text" readonly>
+          </label>
+
+          <label class="field">
+            <span>회사명</span>
+            <input id="editApplicationCompany" type="text" readonly>
+          </label>
+
+          <label class="field">
+            <span>공고명</span>
+            <input id="editApplicationJobTitle" type="text" readonly>
+          </label>
+
+          <label class="field">
+            <span>상태</span>
+            <select id="editApplicationStatus" required>
+              <option value="지원 완료">지원 완료</option>
+              <option value="서류 열람">서류 열람</option>
+              <option value="면접 예정">면접 예정</option>
+              <option value="합격">합격</option>
+              <option value="불합격">불합격</option>
+            </select>
+          </label>
+
+          <label class="field" id="editApplicationInterviewDateGroup" hidden>
+            <span>면접일</span>
+            <input id="editApplicationInterviewDate" type="date" inputmode="numeric" max="9999-12-31">
+          </label>
+        </div>
+
+        <div class="modal__actions">
+          <button class="secondary-button" id="editApplicationCancelButton" type="button">취소</button>
+          <button class="primary-button" type="submit">저장</button>
         </div>
       </form>
     </div>

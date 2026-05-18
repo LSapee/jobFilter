@@ -53,6 +53,88 @@
   line-height: 44px;
 }
 
+.application-search {
+  margin-bottom: 18px;
+  border-color: #b9c9e6;
+}
+
+.application-search__header {
+  align-items: flex-end;
+}
+
+.application-search__header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.application-search__field {
+  display: grid;
+  gap: 5px;
+  min-width: min(360px, 100%);
+}
+
+.application-search__field span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.application-search__field input {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 12px;
+  color: var(--text);
+  background: var(--surface-card);
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.application-search__field input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.application-search__table-wrap {
+  max-height: 392px;
+  overflow-y: auto;
+}
+
+.application-search__table {
+  table-layout: fixed;
+}
+
+.application-search__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.application-search__table th:nth-child(1),
+.application-search__table td:nth-child(1) {
+  width: 16%;
+}
+
+.application-search__table th:nth-child(2),
+.application-search__table td:nth-child(2) {
+  width: 22%;
+}
+
+.application-search__table th:nth-child(3),
+.application-search__table td:nth-child(3) {
+  width: 14%;
+}
+
+.application-search__table .link {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 .table-wrap {
   overflow: hidden;
   border: 1px solid #edf1f8;
@@ -95,6 +177,12 @@ th {
 .posting-name-cell,
 .posting-name-header {
   text-align: left;
+}
+
+.action-cell,
+.action-header {
+  width: 78px;
+  text-align: center;
 }
 
 .delete-cell,
@@ -297,6 +385,11 @@ th {
 
 .platform-detail th:nth-child(5),
 .platform-detail td:nth-child(5) {
+  width: 78px;
+}
+
+.platform-detail th:nth-child(6),
+.platform-detail td:nth-child(6) {
   width: 86px;
 }
 
@@ -381,6 +474,22 @@ tbody tr:last-child td {
   min-width: 82px;
 }
 
+.edit-button {
+  min-height: 30px;
+  padding: 0 10px;
+  color: var(--primary);
+  cursor: pointer;
+  background: var(--primary-soft);
+  border: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.edit-button:hover {
+  background: #c7d7ff;
+}
+
 .secondary-button {
   min-height: 34px;
   min-width: 82px;
@@ -424,4 +533,3 @@ tbody tr:last-child td {
 .empty.is-visible {
   display: block;
 }
-

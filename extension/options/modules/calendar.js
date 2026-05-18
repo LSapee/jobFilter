@@ -25,14 +25,17 @@ export function createCalendarController({
     renderCalendar
   };
 
-  // 지원일이 있는 이력을 월간 캘린더와 선택 날짜 상세 패널로 갱신한다.
+  // 지원일과 면접일 이력을 월간 캘린더와 선택 날짜 상세 패널로 갱신한다.
   function renderCalendar(companies) {
     const calendarMonth = getCalendarMonthDate();
-    const selectedCompanies = getCompaniesByDate(companies, selectedCalendarDate);
+    const selectedCompanies = getAppliedCompaniesByDate(companies, selectedCalendarDate);
     const platformGroups = groupCalendarCompaniesByPlatform(
-      selectedCompanies.filter((company) => !hasInterviewStatus(company))
+      selectedCompanies
     );
-    const interviewCompanies = selectedCompanies.filter(hasInterviewStatus);
+    const interviewCompanies = getInterviewCompaniesByDate(
+      companies,
+      selectedCalendarDate
+    );
 
     elements.calendarTitle.textContent = `${calendarMonth.getFullYear()}년 ${calendarMonth.getMonth() + 1}월`;
     elements.calendarGrid.replaceChildren(
@@ -47,7 +50,7 @@ export function createCalendarController({
     );
     elements.calendarEmpty.classList.toggle(
       "is-visible",
-      selectedCompanies.length === 0
+      selectedCompanies.length === 0 && interviewCompanies.length === 0
     );
     elements.deleteCalendarDayButton.disabled = selectedCompanies.length === 0;
   }
@@ -93,7 +96,8 @@ export function createCalendarController({
         createCalendarCell({
           date: cellDate,
           dateValue,
-          companies: getCompaniesByDate(companies, dateValue),
+          companies: getAppliedCompaniesByDate(companies, dateValue),
+          interviewCompanies: getInterviewCompaniesByDate(companies, dateValue),
           isCurrentMonth: cellDate.getMonth() === calendarMonth.getMonth()
         })
       );
@@ -103,14 +107,17 @@ export function createCalendarController({
   }
 
   // 월간 캘린더의 날짜 셀 하나를 만든다.
-  function createCalendarCell({ date, dateValue, companies, isCurrentMonth }) {
+  function createCalendarCell({
+    date,
+    dateValue,
+    companies,
+    interviewCompanies,
+    isCurrentMonth
+  }) {
     const cell = document.createElement("button");
     const dayNumber = document.createElement("span");
     const events = document.createElement("div");
-    const platformGroups = groupCalendarCompaniesByPlatform(
-      companies.filter((company) => !hasInterviewStatus(company))
-    );
-    const interviewCompanies = companies.filter(hasInterviewStatus);
+    const platformGroups = groupCalendarCompaniesByPlatform(companies);
 
     cell.className = "calendar-cell";
     cell.type = "button";
@@ -273,9 +280,17 @@ export function createCalendarController({
     return message;
   }
 
-  // 지원 이력 배열에서 특정 날짜에 해당하는 항목만 반환한다.
-  function getCompaniesByDate(companies, dateValue) {
+  // 지원 이력 배열에서 특정 지원일에 해당하는 항목만 반환한다.
+  function getAppliedCompaniesByDate(companies, dateValue) {
     return companies.filter((company) => formatDate(company.appliedAt) === dateValue);
+  }
+
+  // 지원 이력 배열에서 특정 면접일에 해당하는 항목만 반환한다.
+  function getInterviewCompaniesByDate(companies, dateValue) {
+    return companies.filter(
+      (company) =>
+        hasInterviewStatus(company) && formatDate(company.interviewAt) === dateValue
+    );
   }
 
   // 지원 이력을 플랫폼별로 묶어 일정 상세 패널에 맞는 배열로 만든다.
@@ -296,7 +311,7 @@ export function createCalendarController({
 
   // 선택된 날짜의 모든 지원 이력 삭제 전 확인 모달을 연다.
   function requestCalendarDayApplicationsRemoval() {
-    const companies = getCompaniesByDate(
+    const companies = getAppliedCompaniesByDate(
       getCurrentData().appliedCompanies,
       selectedCalendarDate
     );

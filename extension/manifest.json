@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "JobFilter for Korea Jobs",
   "short_name": "JobFilter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Filter Korean job postings and mark companies you have already applied to.",
   "action": {
     "default_icon": {

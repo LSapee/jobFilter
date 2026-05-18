@@ -23,7 +23,8 @@ JobFilter for Korea Jobs는 한국 채용 사이트의 공고를 필터링하고
 - 일정 화면에서 지원일 기준 이력 확인 및 날짜 단위 삭제
 - 지원 이력 직접 추가
 - CSV 내려받기 및 CSV 등록
-- `Alt+Shift+J` 단축키로 관리 화면 열기
+- `Alt+Shift+J` 단축키로 관리 화면 열기 
+- Mac의 경우 `option+shift+J`
 
 ## 지원 사이트
 

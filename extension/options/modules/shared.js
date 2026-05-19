@@ -1,3 +1,7 @@
+import "../../src/constants.js";
+
+const { DAY_IN_MS, STALE_UNREAD_DAYS } = globalThis.jobFilterConstants;
+
 // 플랫폼 그래프 조각과 범례에 사용할 색상을 순서대로 반환한다.
 export function getChartColor(index) {
   const colors = [
@@ -214,7 +218,7 @@ export function getApplicationStatusLabel(company) {
   return labels[getApplicationStatusKey(company)];
 }
 
-// 미열람 상태가 20일 이상 지난 지원 이력인지 판단한다.
+// 미열람 상태가 기준일 이상 지난 지원 이력인지 판단한다.
 export function hasStaleUnreadStatus(company) {
   if (
     getApplicationStatusKey(company) !== "applied" ||
@@ -225,9 +229,9 @@ export function hasStaleUnreadStatus(company) {
 
   const appliedTime = getDateTime(formatDate(company.appliedAt));
   const todayTime = getDateTime(getTodayDateValue());
-  const elapsedDays = Math.floor((todayTime - appliedTime) / (1000 * 60 * 60 * 24));
+  const elapsedDays = Math.floor((todayTime - appliedTime) / DAY_IN_MS);
 
-  return appliedTime > 0 && elapsedDays >= 20;
+  return appliedTime > 0 && elapsedDays >= STALE_UNREAD_DAYS;
 }
 
 // 지원 이력의 상태가 면접 계열인지 판단한다.

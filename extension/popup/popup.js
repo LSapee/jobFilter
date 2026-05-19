@@ -1,5 +1,7 @@
+import "../src/constants.js";
 import { getLocalData, setSettings } from "../src/storage.js";
 
+const { MESSAGE_TYPES } = globalThis.jobFilterConstants;
 const blockedCount = document.querySelector("#blockedCount");
 const appliedCount = document.querySelector("#appliedCount");
 const siteName = document.querySelector("#siteName");
@@ -59,10 +61,7 @@ async function handleCollectAppliedClick() {
     return;
   }
 
-  const saveResponse = await chrome.runtime.sendMessage({
-    type: "JOBPICK_SAVE_APPLIED_COMPANIES",
-    companies: collectResponse.companies
-  });
+  const saveResponse = await requestSaveAppliedCompanies(collectResponse.companies);
 
   if (!saveResponse?.ok) {
     collectStatus.textContent = "지원 이력 저장에 실패했습니다.";
@@ -85,9 +84,10 @@ async function refreshCurrentTabFilters() {
 
   try {
     await chrome.tabs.sendMessage(tab.id, {
-      type: "JOBPICK_REFRESH_PAGE_FILTERS"
+      type: MESSAGE_TYPES.refreshPageFilters
     });
-  } catch {
+  } catch (error) {
+    console.warn("JobFilter page filter refresh failed.", error);
     // 지원하지 않는 페이지에서는 콘텐츠 스크립트가 없을 수 있다.
   }
 }
@@ -96,14 +96,30 @@ async function refreshCurrentTabFilters() {
 async function requestAppliedCompaniesFromTab(tabId) {
   try {
     return await chrome.tabs.sendMessage(tabId, {
-      type: "JOBPICK_COLLECT_APPLIED_COMPANIES"
+      type: MESSAGE_TYPES.collectAppliedCompanies
     });
-  } catch {
-    return { ok: false };
+  } catch (error) {
+    console.warn("JobFilter applied company collection failed.", error);
+    return { ok: false, error: error.message };
+  }
+}
+
+// background에 수집한 지원 이력 저장을 요청한다.
+async function requestSaveAppliedCompanies(companies) {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGE_TYPES.saveAppliedCompanies,
+      companies
+    });
+  } catch (error) {
+    console.warn("JobFilter applied company save failed.", error);
+    return { ok: false, error: error.message };
   }
 }
 
 // 확장 프로그램 옵션 페이지를 연다.
 function handleOpenOptionsClick() {
-  chrome.runtime.openOptionsPage();
+  Promise.resolve(chrome.runtime.openOptionsPage()).catch((error) => {
+    console.warn("JobFilter options page open failed.", error);
+  });
 }

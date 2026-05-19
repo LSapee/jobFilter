@@ -6,6 +6,7 @@ JobFilter for Korea Jobs는 한국 채용 사이트의 공고를 필터링하고
 
 # 다운로드 링크 : [JobFilter](https://chromewebstore.google.com/detail/jobfilter-for-korea-jobs/aiamghaamcjlfmgpgpnmnkilfhjhnkda?hl=ko)
 
+<img src="/extension/posts/post.png">
 
 ## 주요 기능
 

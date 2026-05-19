@@ -284,16 +284,7 @@ export function createApplicationsController({
     selectLabel.append(selectAll, document.createTextNode("전체 선택"));
     toolbarActions.append(selectedCount, deleteSelectedButton);
     toolbar.append(selectLabel, toolbarActions);
-    thead.innerHTML = `
-      <tr>
-        <th></th>
-        <th>기업명</th>
-        <th>지원일</th>
-        <th class="posting-name-header">공고명</th>
-        <th class="action-header">수정</th>
-        <th class="delete-header">삭제</th>
-      </tr>
-    `;
+    thead.append(createAppliedCompanyTableHeader());
     tbody.append(
       ...group.companies.map((company) =>
         createAppliedCompanyDetailRow(company, group.companies)
@@ -304,6 +295,35 @@ export function createApplicationsController({
     wrapper.append(toolbar, scrollWrapper);
     cell.append(wrapper);
     row.append(cell);
+
+    return row;
+  }
+
+  // 플랫폼 상세 테이블의 고정 헤더 행을 만든다.
+  function createAppliedCompanyTableHeader() {
+    const row = document.createElement("tr");
+    const headers = [
+      { label: "" },
+      { label: "기업명" },
+      { label: "지원일" },
+      { label: "공고명", className: "posting-name-header" },
+      { label: "수정", className: "action-header" },
+      { label: "삭제", className: "delete-header" }
+    ];
+
+    row.append(
+      ...headers.map(({ label, className }) => {
+        const header = document.createElement("th");
+
+        if (className) {
+          header.className = className;
+        }
+
+        header.textContent = label;
+
+        return header;
+      })
+    );
 
     return row;
   }

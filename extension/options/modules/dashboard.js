@@ -1,3 +1,4 @@
+import "../../src/constants.js";
 import {
   countBy,
   createEmptyCompactItem,
@@ -9,6 +10,8 @@ import {
   hasStaleUnreadStatus,
   sortByDateDesc
 } from "./shared.js";
+
+const { STALE_UNREAD_DAYS } = globalThis.jobFilterConstants;
 
 let selectedDistributionKey = "applied";
 
@@ -265,7 +268,7 @@ function getApplicationDistribution(companies) {
     },
     {
       key: "staleUnread",
-      label: "20일 이상 미열람\n(불합격 추측)",
+      label: `${STALE_UNREAD_DAYS}일 이상 미열람\n(불합격 추측)`,
       count: companiesByStatus.staleUnread.length,
       color: "#5c3800",
       companies: companiesByStatus.staleUnread
